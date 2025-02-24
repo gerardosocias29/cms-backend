@@ -14,5 +14,9 @@ class Queue extends Model
     'number',
     'status',
   ];
+
+  public function department() {
+    return $this->belongsTo(Department::class);
+  }
   
 }
