@@ -1,0 +1,90 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Hash;
+
+class UserController extends Controller
+{
+    public function get(Request $request){
+        $filter = json_decode($request->filter);
+        $usersQuery = User::with(['department_specialization.department'])
+            ->withTrashed()
+            ->where('role_id', '!=', 1);
+
+        $usersQuery = $this->applyFilters($usersQuery, $filter);
+        $users = $usersQuery->paginate(($filter->rows), ['*'], 'page', ($filter->page + 1));
+        
+        return response($users);
+    }
+    
+    public function saveUser(Request $request, $id = null)
+    {
+        try {
+            $validatedData = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email,' . ($id ?? 'NULL') . ',id',
+                'password' => $id ? 'nullable|string|min:6|confirmed' : 'required|string|min:6|confirmed',
+                'role_id' => 'required|integer|exists:roles,id|not_in:1',
+                'department_id' => 'nullable|integer',
+                'specialization_id' => 'nullable|integer',
+            ]);
+
+            $user = $id ? User::find($id) : new User();
+
+            if (!$user && $id) {
+                return response()->json(['status' => false, 'message' => 'User not found'], 404);
+            }
+
+            $user->fill($validatedData);
+
+            if ($request->filled('password')) {
+                $user->password = Hash::make($request->password);
+            }
+
+            $user->role_id = $request->role_id;
+            $user->department_specialization_id = $request->specialization_id;
+
+            $user->save();
+
+            return response()->json([
+                'status' => true,
+                'message' => $id ? 'User updated successfully' : 'User created successfully'
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json(['status' => false, 'message' => $e->getMessage()], 422);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => 'An error occurred'], 500);
+        }
+    }
+
+    private function applyFilters($query, $filter) {
+        if (!empty($filter->filters->global->value)) {
+            $query->where(function (Builder $query) use ($filter) {
+                $value = '%' . $filter->filters->global->value . '%';
+                $user = new User();
+                foreach ($user->getFillable() as $column) {
+                    $query->orWhere($column, 'LIKE', $value);
+                }
+            });
+        }
+        return $query;
+    }
+
+    public function cardTotals() {
+        $admin = User::withTrashed()->where('role_id', 2)->count();
+        $staff = User::withTrashed()->where('role_id', 3)->count();
+        $active = User::where('role_id', '!=', 1)->count();
+        $inactive = User::where('role_id', '!=', 1)->whereNotNull('deleted_at')->count();
+
+        return response()->json([
+            "admin" => $admin,
+            "staff" => $staff,
+            "active" => $active,
+            "inactive" => $inactive,
+        ]);
+    }
+}

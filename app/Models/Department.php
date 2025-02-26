@@ -6,10 +6,14 @@ use Illuminate\Database\Eloquent\{Model, SoftDeletes};
 
 class Department extends Model
 {
-    use SoftDeletes;
+  use SoftDeletes;
 
-    protected $fillable = [
-      'name',
-      'description',
-    ];
+  protected $fillable = [
+    'name',
+    'description',
+  ];
+
+  public function specializations () {
+    return $this->hasMany(DepartmentSpecialization::class);
+}
 }

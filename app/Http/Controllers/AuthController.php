@@ -18,6 +18,8 @@ class AuthController extends Controller
         if (!$token = JWTAuth::attempt($credentials)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
+        
+        auth()->user()->touch();
 
         return response()->json(['token' => $token]);
     }
