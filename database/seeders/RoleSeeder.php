@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Role;
+use App\Models\{Role, RoleModule};
 
 class RoleSeeder extends Seeder
 {
@@ -13,8 +12,30 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        Role::create(['id' => 1, 'name' => 'superadmin', 'description' => ""]);
-        Role::create(['id' => 2, 'name' => 'admin', 'description' => ""]);
-        Role::create(['id' => 3, 'name' => 'staff', 'description' => ""]);
+        $roles = [
+            1 => ['name' => 'superadmin', 'description' => ""],
+            2 => ['name' => 'admin', 'description' => ""],
+            3 => ['name' => 'staff', 'description' => ""],
+        ];
+
+        $roleModules = [
+            1 => ['dashboard', 'patient-triage', 'queue', 'departments', 'users', 'settings'], // Superadmin
+            2 => ['dashboard', 'patient-triage', 'queue', 'departments', 'users'], // Admin
+            3 => ['dashboard', 'patient-triage', 'queue'], // Staff
+        ];
+
+        foreach ($roles as $id => $roleData) {
+            $role = Role::updateOrCreate(['id' => $id], $roleData);
+
+            // Assign only allowed pages per role
+            foreach ($roleModules[$id] as $page) {
+                RoleModule::updateOrCreate([
+                    'role_id' => $role->id,
+                    'page' => $page,
+                ], [
+                    'description' => "Access to $page",
+                ]);
+            }
+        }
     }
 }
