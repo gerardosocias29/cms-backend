@@ -28,31 +28,28 @@ class UserController extends Controller
             $validatedData = $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email,' . ($id ?? 'NULL') . ',id',
-                'password' => !empty($id) ? 'nullable|string|min:6|confirmed' : 'required|string|min:6|confirmed',
+                'password' => $id ? 'nullable|string|min:6|confirmed' : 'required|string|min:6|confirmed',
                 'role_id' => 'required|integer|exists:roles,id|not_in:1',
                 'department_id' => 'nullable|integer',
                 'specialization_id' => 'nullable|integer',
             ]);
-
+    
             $user = $id ? User::find($id) : new User();
-
-            if (!$user && $id) {
+    
+            if ($id && !$user) {
                 return response()->json(['status' => false, 'message' => 'User not found'], 404);
             }
-
-            
-
-            if (empty($id) && $request->filled('password')) {
-                $user->fill($validatedData);
-                $user->password = Hash::make($request->password);
-            } else {
-                $user->name = $request->name;
-                $user->email = $request->email;
-            }
-
+    
+            $user->name = $request->name;
+            $user->email = $request->email;
             $user->role_id = $request->role_id;
             $user->department_specialization_id = $request->specialization_id;
-
+    
+            // Update password only if provided
+            if ($request->filled('password')) {
+                $user->password = Hash::make($request->password);
+            }
+    
             $user->save();
 
             return response()->json([
