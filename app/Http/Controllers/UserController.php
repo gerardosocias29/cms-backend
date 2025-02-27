@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
@@ -27,7 +28,7 @@ class UserController extends Controller
             $validatedData = $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email,' . ($id ?? 'NULL') . ',id',
-                'password' => $id ? 'nullable|string|min:6|confirmed' : 'required|string|min:6|confirmed',
+                'password' => !empty($id) ? 'nullable|string|min:6|confirmed' : 'required|string|min:6|confirmed',
                 'role_id' => 'required|integer|exists:roles,id|not_in:1',
                 'department_id' => 'nullable|integer',
                 'specialization_id' => 'nullable|integer',
@@ -39,10 +40,14 @@ class UserController extends Controller
                 return response()->json(['status' => false, 'message' => 'User not found'], 404);
             }
 
-            $user->fill($validatedData);
+            
 
-            if ($request->filled('password')) {
+            if (empty($id) && $request->filled('password')) {
+                $user->fill($validatedData);
                 $user->password = Hash::make($request->password);
+            } else {
+                $user->name = $request->name;
+                $user->email = $request->email;
             }
 
             $user->role_id = $request->role_id;
@@ -55,9 +60,9 @@ class UserController extends Controller
                 'message' => $id ? 'User updated successfully' : 'User created successfully'
             ]);
         } catch (ValidationException $e) {
-            return response()->json(['status' => false, 'message' => $e->getMessage()], 422);
+            return response()->json(['status' => false, 'message' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['status' => false, 'message' => 'An error occurred'], 500);
+            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
         }
     }
 
