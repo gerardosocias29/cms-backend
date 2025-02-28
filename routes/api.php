@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\{AuthController, DepartmentController, UserController};
+use App\Http\Controllers\{AuthController, DepartmentController, UserController, PatientController};
 
 Route::post('login', [AuthController::class, 'login']);
 
@@ -26,6 +26,11 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/{id}', [UserController::class, 'saveUser']);
     Route::get('/card-total', [UserController::class, 'cardTotals']); 
    
+  });
+
+  Route::prefix('users')->group(function () {
+    Route::post('/', [PatientController::class, 'savePatient']);
+    Route::post('/{id}', [PatientController::class, 'savePatient']);
   });
   
 });
