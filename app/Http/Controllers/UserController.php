@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -16,7 +15,7 @@ class UserController extends Controller
             ->withTrashed()
             ->where('role_id', '!=', 1);
 
-        $usersQuery = $this->applyFilters($usersQuery, $filter);
+        $usersQuery = $this->applyFilters($usersQuery, $filter, User::class);
         $users = $usersQuery->paginate(($filter->rows), ['*'], 'page', ($filter->page + 1));
         
         return response($users);
@@ -61,19 +60,6 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
         }
-    }
-
-    private function applyFilters($query, $filter) {
-        if (!empty($filter->filters->global->value)) {
-            $query->where(function (Builder $query) use ($filter) {
-                $value = '%' . $filter->filters->global->value . '%';
-                $user = new User();
-                foreach ($user->getFillable() as $column) {
-                    $query->orWhere($column, 'LIKE', $value);
-                }
-            });
-        }
-        return $query;
     }
 
     public function cardTotals() {

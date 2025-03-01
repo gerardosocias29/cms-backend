@@ -29,6 +29,7 @@ Route::middleware('auth:api')->group(function () {
   });
 
   Route::prefix('patients')->group(function () {
+    Route::get('/', [PatientController::class, 'get']);
     Route::post('/', [PatientController::class, 'savePatient']);
     Route::post('/{id}', [PatientController::class, 'savePatient']);
   });
