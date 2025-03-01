@@ -22,8 +22,21 @@ class PatientController extends Controller
                 'assigned_user_id' => 'nullable|integer|exists:users,id',
             ]);
 
+            $validatedData['birthday'] = \Carbon\Carbon::parse($validatedData['birthday'])->toDateString();
+            $date = \Carbon\Carbon::now()->toDateString();
+            $priority = $validatedData['priority'];
+            $lastPriority = Patient::whereDate('created_at', $date)
+                ->where('priority', $priority)
+                ->max('priority_number');
+
             $patient = $id ? Patient::findOrFail($id) : new Patient();
             $patient->fill($validatedData);
+
+            // Assign priority number only when creating a new patient
+            if (!$id) {
+                $patient->priority_number = $lastPriority ? $lastPriority + 1 : 1;
+            }
+
             $patient->save();
 
             return response()->json([
