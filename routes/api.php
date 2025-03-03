@@ -34,4 +34,5 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/{id}', [PatientController::class, 'savePatient']);
   });
   
+  Route::post('/messages', [App\Http\Controllers\ChatController::class, 'sendMessage']);
 });
