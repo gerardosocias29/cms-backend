@@ -23,7 +23,9 @@ Route::middleware('auth:api')->group(function () {
   Route::prefix('users')->group(function () {
     Route::get('/', [UserController::class, 'get']);
     Route::post('/', [UserController::class, 'saveUser']);
+
     Route::post('/{id}', [UserController::class, 'saveUser']);
+    Route::get('/staff', [UserController::class, 'getStaff']);
     Route::get('/card-total', [UserController::class, 'cardTotals']); 
    
   });

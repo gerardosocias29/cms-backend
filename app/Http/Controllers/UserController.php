@@ -75,4 +75,9 @@ class UserController extends Controller
             "inactive" => $inactive,
         ]);
     }
+
+    public function getStaff() {
+        $staffs = User::where('role_id', 3)->get();
+        return response($staffs);
+    }
 }

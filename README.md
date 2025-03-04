@@ -1,3 +1,4 @@
-### Start Server
-> laravel-echo-server start
-> php artisan queue:work
+# Start Server
+
+##### ```laravel-echo-server start```
+##### ```php artisan queue:work```

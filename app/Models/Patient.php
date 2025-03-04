@@ -22,4 +22,8 @@ class Patient extends Model
         'assigned_user_id',
     ];
 
+    public function assigned_to() {
+        return $this->belongsTo(User::class, 'assigned_user_id', 'id');
+    }
+
 }
