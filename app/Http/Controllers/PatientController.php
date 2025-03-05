@@ -60,4 +60,18 @@ class PatientController extends Controller
         }
     }
 
+    public function cardTotals() {
+        $urgent = Patient::where('priority', 'P')->count();
+        $waiting = Patient::where('status', 'waiting')->orWhereNull('status')->count();
+        $inprogress = Patient::where('status', 'in-progress')->count();
+        $completed = Patient::where('status', 'competed')->count();
+
+        return response()->json([
+            "urgent" => $urgent,
+            "waiting" => $waiting,
+            "inprogress" => $inprogress,
+            "completed" => $completed,
+        ]);
+    }
+
 }
