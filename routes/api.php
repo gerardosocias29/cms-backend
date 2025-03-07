@@ -24,10 +24,10 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/', [UserController::class, 'get']);
     Route::post('/', [UserController::class, 'saveUser']);
 
+    Route::get('/{id}', [UserController::class, 'getUserById']); 
     Route::post('/{id}', [UserController::class, 'saveUser']);
     Route::get('/staff', [UserController::class, 'getStaff']);
     Route::get('/card-total', [UserController::class, 'cardTotals']); 
-   
   });
 
   Route::prefix('patients')->group(function () {
