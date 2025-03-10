@@ -80,7 +80,7 @@ class UserController extends Controller
 
     public function getStaff() {
         $staffs = User::where('role_id', 3)->get();
-        return response($staffs);
+        return response()->json($staffs ?? []);
     }
 
     public function getUserById(Request $request, $id) {
