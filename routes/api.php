@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\{AuthController, DepartmentController, UserController, PatientController};
+use App\Http\Controllers\{AuthController, DepartmentController, UserController, QueueController, PatientController};
 
 Route::post('login', [AuthController::class, 'login']);
 
