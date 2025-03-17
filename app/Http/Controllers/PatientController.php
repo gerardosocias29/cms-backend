@@ -50,8 +50,10 @@ class PatientController extends Controller
             $patient->save();
 
             return response()->json([
-                'status' => true,
-                'message' => $id ? 'Patient updated successfully' : 'Patient created successfully'
+                'status' => true, 
+                'message' => $id ? 'Patient updated successfully' : 'Patient created successfully',
+                'priority_number' => $patient->priority_number,
+                'priority_type' => $patient->priority
             ]);
         } catch (ValidationException $e) {
             return response()->json(['status' => false, 'message' => $e->errors()], 422);
