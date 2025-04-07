@@ -34,9 +34,10 @@ class PrinterSettingController extends Controller
     public function setDefaultPrinter(Request $request)
     {
         try {
+            // Change validation to numeric for IDs from WebUSB
             $validated = $request->validate([
-                'vendorId' => 'required|string', // Validate as string to handle hex etc.
-                'productId' => 'required|string',
+                'vendorId' => 'required|numeric',
+                'productId' => 'required|numeric',
                 'name' => 'required|string|max:255',
                 'serialNumber' => 'nullable|string|max:255',
             ]);
