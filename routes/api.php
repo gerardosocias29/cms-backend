@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\{AuthController, DepartmentController, UserController, QueueController, PatientController};
+use App\Http\Controllers\Api\PrinterSettingController; // Import the new controller
 
 Route::post('login', [AuthController::class, 'login']);
 
@@ -38,4 +39,10 @@ Route::middleware('auth:api')->group(function () {
   });
   
   Route::post('/messages', [App\Http\Controllers\ChatController::class, 'sendMessage']);
+
+  // Printer Settings Routes
+  Route::prefix('settings')->group(function () {
+      Route::get('/default-printer', [PrinterSettingController::class, 'getDefaultPrinter']);
+      Route::post('/default-printer', [PrinterSettingController::class, 'setDefaultPrinter']);
+  });
 });
