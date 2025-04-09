@@ -10,7 +10,7 @@ class PatientController extends Controller
 {
     public function get(Request $request){
         $filter = json_decode($request->filter);
-        $patientsQuery = Patient::with(['assigned_to']);
+        $patientsQuery = Patient::with(['assigned_to'])->orderBy('created_at', 'desc');
 
         $patientsQuery = $this->applyFilters($patientsQuery, $filter, Patient::class);
         $patients = $patientsQuery->paginate(($filter->rows), ['*'], 'page', ($filter->page + 1));
