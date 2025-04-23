@@ -46,3 +46,12 @@ Route::middleware('auth:api')->group(function () {
       Route::post('/default-printer', [PrinterSettingController::class, 'setDefaultPrinter']);
   });
 });
+
+use App\Http\Controllers\PatientQueueController;
+
+Route::get('/patients/queue', [PatientQueueController::class, 'index']);
+
+// Queue Management Routes
+Route::post('/queue/start/{patient}', [PatientQueueController::class, 'startSession']);
+Route::post('/queue/end/{patient}', [PatientQueueController::class, 'endSession']);
+Route::post('/queue/next/{patient}', [PatientQueueController::class, 'nextStep']);
