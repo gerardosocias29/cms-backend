@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\PatientQueueUpdated;
 use App\Models\Patient; // Make sure Patient model exists and is correctly namespaced
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request; // Import Request
@@ -136,8 +137,9 @@ class PatientQueueController extends Controller
 
             $nextStepId = $request->input('next_step_id', 'Unknown'); // Get next step if provided
             Log::info("Patient ID: {$patient->id} moved to next step (ID: {$nextStepId})");
-            // TODO: Broadcast event
-            // event(new PatientStatusUpdated($patient));
+            
+            // Broadcast event to the specific department
+            event(new PatientQueueUpdated($patient, $nextStepId));
 
             return response()->json(['message' => 'Patient moved to next step successfully.']);
         } catch (\Exception $e) {
