@@ -13,7 +13,7 @@ class UserController extends Controller
 {
     public function get(Request $request){
         $filter = json_decode($request->filter);
-        $usersQuery = User::with(['department_specialization.department'])
+        $usersQuery = User::with(['department_specialization.department', 'department'])
             ->withTrashed()
             ->where('role_id', '!=', 1);
 
@@ -44,6 +44,7 @@ class UserController extends Controller
             $user->name = $request->name;
             $user->email = $request->email;
             $user->role_id = $request->role_id;
+            $user->department_id = $request->department_id;
             $user->department_specialization_id = $request->specialization_id;
     
             // Update password only if provided
@@ -85,7 +86,7 @@ class UserController extends Controller
 
     public function getUserById(Request $request, $id) {
         
-        $user = User::with(['department_specialization.department', 'patients'])
+        $user = User::with(['department_specialization.department', 'department', 'patients'])
             ->where('id', $id)
             ->first();
        

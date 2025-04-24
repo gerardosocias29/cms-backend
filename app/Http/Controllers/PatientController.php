@@ -45,6 +45,17 @@ class PatientController extends Controller
             // Assign priority number only when creating a new patient
             if (!$id) {
                 $patient->priority_number = $lastPriority ? $lastPriority + 1 : 1;
+                $patient->status = "waiting";
+            }
+
+            // Assign starting department based on assigned user's department specialization
+            if (!$id && isset($validatedData['assigned_user_id'])) {
+                $assignedUser = \App\Models\User::find($validatedData['assigned_user_id']);
+                if ($assignedUser) {
+                    $patient->starting_department_id = $assignedUser->department_id;
+                    $patient->next_department_id = $patient->starting_department_id;
+                    $patient->next_department_started = \Carbon\Carbon::now()->toDateTimeString();
+                }
             }
 
             $patient->save();

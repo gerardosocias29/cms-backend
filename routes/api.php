@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\{AuthController, DepartmentController, UserController, QueueController, PatientController};
+use App\Http\Controllers\{AuthController, DepartmentController, UserController, QueueController, PatientController, PatientQueueController};
 use App\Http\Controllers\Api\PrinterSettingController; // Import the new controller
 
 Route::post('login', [AuthController::class, 'login']);
@@ -34,9 +34,18 @@ Route::middleware('auth:api')->group(function () {
   Route::prefix('patients')->group(function () {
     Route::get('/', [PatientController::class, 'get']);
     Route::post('/', [PatientController::class, 'savePatient']);
+    Route::get('/queue', [PatientQueueController::class, 'index']);
     Route::post('/{id}', [PatientController::class, 'savePatient']);
     Route::get('/card-totals', [PatientController::class, 'cardTotals']); 
   });
+
+
+  
+
+  // Queue Management Routes
+  Route::post('/queue/start/{patient}', [PatientQueueController::class, 'startSession']);
+  Route::post('/queue/end/{patient}', [PatientQueueController::class, 'endSession']);
+  Route::post('/queue/next/{patient}', [PatientQueueController::class, 'nextStep']);
   
   Route::post('/messages', [App\Http\Controllers\ChatController::class, 'sendMessage']);
 
@@ -47,11 +56,3 @@ Route::middleware('auth:api')->group(function () {
   });
 });
 
-use App\Http\Controllers\PatientQueueController;
-
-Route::get('/patients/queue', [PatientQueueController::class, 'index']);
-
-// Queue Management Routes
-Route::post('/queue/start/{patient}', [PatientQueueController::class, 'startSession']);
-Route::post('/queue/end/{patient}', [PatientQueueController::class, 'endSession']);
-Route::post('/queue/next/{patient}', [PatientQueueController::class, 'nextStep']);

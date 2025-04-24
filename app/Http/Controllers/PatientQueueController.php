@@ -18,10 +18,13 @@ class PatientQueueController extends Controller
     {
         // Fetch patients relevant to the queue (e.g., 'waiting' or 'in-progress')
         // Adjust the query based on your actual status values and logic
+
+        $user = auth()->user();
+
         $patients = Patient::whereIn('status', ['waiting', 'in-progress'])
-                           ->orWhereNull('status') // Include null if that means waiting
-                           ->orderBy('priority_number') // Example ordering
-                           ->get();
+                            ->where('next_department_id', $user->department_id)
+                            ->orderBy('priority_number') // Example ordering
+                            ->get();
 
         return response()->json($patients);
     }
@@ -36,11 +39,12 @@ class PatientQueueController extends Controller
     {
         try {
             // Check if patient is already being served or completed
-            if ($patient->status !== 'waiting' && !is_null($patient->status)) {
-                 return response()->json(['message' => 'Patient is not waiting.'], 409); // Conflict
-            }
+            // if ($patient->status !== 'waiting' && !is_null($patient->status)) {
+            //      return response()->json(['message' => 'Patient is not waiting.'], 409); // Conflict
+            // }
 
             $patient->status = 'in-progress';
+            $patient->session_started = \Carbon\Carbon::now()->toDateTimeString();
             $patient->save();
 
             Log::info("Session started for patient ID: {$patient->id}");
@@ -99,15 +103,34 @@ class PatientQueueController extends Controller
 
         try {
             if ($patient->status !== 'in-progress') {
-                 return response()->json(['message' => 'Patient session was not in progress.'], 409);
+                return response()->json(['message' => 'Patient session was not in progress.'], 409);
             }
 
             // Logic to handle the next step:
             // Option 1: Mark as completed in this queue
-            $patient->status = 'transferred'; // Or 'completed'
+            $patient->status = 'in-progress'; // Or 'completed'
             // Option 2: Update status and potentially assign to a new department/queue
             // $patient->department_id = $validated['next_step_id'];
             // $patient->status = 'waiting'; // Waiting in the next queue
+
+            // Get the current next_department_id before updating
+            $current_next_department_id = $patient->next_department_id;
+            $current_next_department_started = $patient->next_department_started;
+
+            // Add the current next_department_id to the prev_department_ids array
+            // Ensure prev_department_ids is treated as an array (handled by model casting)
+            $prev_departments = $patient->prev_department_ids ?? []; // Initialize as empty array if null
+            if ($current_next_department_id !== null) {
+                $prev_departments[] = [
+                    'department_id' => $current_next_department_id,
+                    'timestamp' => $current_next_department_started, // Store as string
+                ];
+            }
+            $patient->prev_department_ids = $prev_departments;
+
+            // Update the next_department_id with the new value from the request
+            $patient->next_department_id = $request->input('next_step_id');
+            $patient->next_department_started = \Carbon\Carbon::now()->toDateTimeString();
 
             $patient->save();
 

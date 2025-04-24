@@ -20,6 +20,15 @@ class Patient extends Model
         'temperature',
         'status',
         'assigned_user_id',
+        'starting_department_id',
+        'next_department_id',
+        'prev_department_ids',
+        'session_started',
+        'session_ended',
+    ];
+
+    protected $casts = [
+        'prev_department_ids' => 'array',
     ];
 
     public function assigned_to() {
