@@ -109,7 +109,7 @@ class PatientQueueController extends Controller
 
             // Logic to handle the next step:
             // Option 1: Mark as completed in this queue
-            $patient->status = 'in-progress'; // Or 'completed'
+            $patient->status = 'waiting'; // Or 'completed'
             // Option 2: Update status and potentially assign to a new department/queue
             // $patient->department_id = $validated['next_step_id'];
             // $patient->status = 'waiting'; // Waiting in the next queue
