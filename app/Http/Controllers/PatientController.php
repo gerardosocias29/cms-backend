@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Patient;
 use Illuminate\Validation\ValidationException;
+use App\Events\PatientQueueUpdated;
 
 class PatientController extends Controller
 {
@@ -55,6 +56,8 @@ class PatientController extends Controller
                     $patient->starting_department_id = $assignedUser->department_id;
                     $patient->next_department_id = $patient->starting_department_id;
                     $patient->next_department_started = \Carbon\Carbon::now()->toDateTimeString();
+
+                    event(new PatientQueueUpdated($assignedUser->department_id));
                 }
             }
 
