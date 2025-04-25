@@ -75,6 +75,23 @@ class PatientQueueController extends Controller
 
             // Mark as completed or remove, depending on workflow
             $patient->status = 'completed'; // Or perhaps delete/archive
+            $patient->session_ended = \Carbon\Carbon::now()->toDateTimeString(); // Or perhaps delete/archive
+            
+            $current_next_department_id = $patient->next_department_id;
+            $current_next_department_started = $patient->next_department_started;
+
+            $prev_departments = $patient->prev_department_ids ?? []; // Initialize as empty array if null
+            if ($current_next_department_id !== null) {
+                $prev_departments[] = [
+                    'department_id' => $current_next_department_id,
+                    'timestamp' => $current_next_department_started, // Store as string
+                ];
+            }
+            $patient->prev_department_ids = $prev_departments;
+            
+            $patient->next_department_id = null;
+            $patient->next_department_started = null;
+
             $patient->save();
 
             Log::info("Session ended for patient ID: {$patient->id}");
