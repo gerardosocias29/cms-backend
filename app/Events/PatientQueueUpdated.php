@@ -35,16 +35,9 @@ class PatientQueueUpdated implements ShouldBroadcast
       return 'PatientQueueUpdated';
     }
 
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
-     */
-    public function broadcastOn(): array
+    public function broadcastOn()
     {
-      return [
-        new PrivateChannel('department_' . $this->nextDepartmentId),
-      ];
+      return new PrivateChannel('department_' . $this->nextDepartmentId);
     }
 
     /**
