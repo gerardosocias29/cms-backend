@@ -139,7 +139,7 @@ class PatientQueueController extends Controller
             Log::info("Patient ID: {$patient->id} moved to next step (ID: {$nextStepId})");
             
             // Broadcast event to the specific department
-            event(new PatientQueueUpdated($patient, $nextStepId));
+            event(new PatientQueueUpdated($nextStepId));
 
             return response()->json(['message' => 'Patient moved to next step successfully.']);
         } catch (\Exception $e) {
