@@ -15,18 +15,10 @@ class PatientQueueUpdated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $patient;
     public $nextDepartmentId;
 
-    /**
-     * Create a new event instance.
-     *
-     * @param Patient $patient
-     * @param int $nextDepartmentId
-     */
-    public function __construct(Patient $patient, int $nextDepartmentId)
+    public function __construct(int $nextDepartmentId)
     {
-      $this->patient = $patient;
       $this->nextDepartmentId = $nextDepartmentId;
     }
 
@@ -37,21 +29,6 @@ class PatientQueueUpdated implements ShouldBroadcast
 
     public function broadcastOn()
     {
-      return new PrivateChannel('department_' . $this->nextDepartmentId);
-    }
-
-    /**
-     * Get the data to broadcast.
-     *
-     * @return array<string, mixed>
-     */
-    public function broadcastWith(): array
-    {
-      return [
-        'patientId' => $this->patient->id,
-        'patientName' => $this->patient->name,
-        'nextDepartmentId' => $this->nextDepartmentId,
-        'timestamp' => now()->toDateTimeString(),
-      ];
+      return new Channel('department_' . $this->nextDepartmentId);
     }
 }
