@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\PatientQueueUpdated;
+use App\Events\{PatientQueueUpdated, PatientQueueDisplay};
 use App\Models\Patient; // Make sure Patient model exists and is correctly namespaced
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request; // Import Request
@@ -21,8 +21,10 @@ class PatientQueueController extends Controller
         // Adjust the query based on your actual status values and logic
 
         $user = auth()->user();
-
+        
+        $date = \Carbon\Carbon::now()->toDateString();
         $patients = Patient::whereIn('status', ['waiting', 'in-progress'])
+                            ->whereDate('created_at', $date)
                             ->where('next_department_id', $user->department_id)
                             ->orderBy('priority_number') // Example ordering
                             ->get();
@@ -51,6 +53,7 @@ class PatientQueueController extends Controller
             Log::info("Session started for patient ID: {$patient->id}");
             // TODO: Broadcast event for real-time updates (e.g., using Laravel Echo)
             // event(new PatientStatusUpdated($patient));
+            event(new PatientQueueDisplay("Reload PatientQueueDisplay"));
 
             return response()->json(['message' => 'Session started successfully.', 'patient' => $patient]);
         } catch (\Exception $e) {
@@ -97,6 +100,7 @@ class PatientQueueController extends Controller
             Log::info("Session ended for patient ID: {$patient->id}");
             // TODO: Broadcast event
             // event(new PatientStatusUpdated($patient));
+            event(new PatientQueueDisplay("Reload PatientQueueDisplay"));
 
             return response()->json(['message' => 'Session ended successfully.']);
         } catch (\Exception $e) {

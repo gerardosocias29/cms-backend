@@ -11,8 +11,8 @@ class PatientController extends Controller
 {
     public function get(Request $request){
         $filter = json_decode($request->filter);
-        $patientsQuery = Patient::with(['assigned_to'])->orderBy('created_at', 'desc');
-
+        $date = \Carbon\Carbon::now()->toDateString();
+        $patientsQuery = Patient::with(['assigned_to'])->whereDate('created_at', $date)->orderBy('created_at', 'desc');
         $patientsQuery = $this->applyFilters($patientsQuery, $filter, Patient::class);
         $patients = $patientsQuery->paginate(($filter->rows), ['*'], 'page', ($filter->page + 1));
         
@@ -77,10 +77,12 @@ class PatientController extends Controller
     }
 
     public function cardTotals() {
-        $urgent = Patient::where('priority', 'P')->count();
-        $waiting = Patient::where('status', 'waiting')->orWhereNull('status')->count();
-        $inprogress = Patient::where('status', 'in-progress')->count();
-        $completed = Patient::where('status', 'competed')->count();
+        $date = \Carbon\Carbon::now()->toDateString();
+        
+        $urgent = Patient::where('priority', 'P')->whereDate('created_at', $date)->count();
+        $waiting = Patient::where('status', 'waiting')->whereDate('created_at', $date)->orWhereNull('status')->count();
+        $inprogress = Patient::where('status', 'in-progress')->whereDate('created_at', $date)->count();
+        $completed = Patient::where('status', 'completed')->whereDate('created_at', $date)->count();
 
         return response()->json([
             "urgent" => $urgent,
