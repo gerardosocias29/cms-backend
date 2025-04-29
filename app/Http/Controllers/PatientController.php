@@ -12,7 +12,7 @@ class PatientController extends Controller
     public function get(Request $request){
         $filter = json_decode($request->filter);
         $date = \Carbon\Carbon::now()->toDateString();
-        $patientsQuery = Patient::with(['assigned_to'])->whereDate('created_at', $date)->orderBy('created_at', 'desc');
+        $patientsQuery = Patient::with(['assigned_to.department'])->whereDate('created_at', $date)->orderBy('created_at', 'desc');
         $patientsQuery = $this->applyFilters($patientsQuery, $filter, Patient::class);
         $patients = $patientsQuery->paginate(($filter->rows), ['*'], 'page', ($filter->page + 1));
         
