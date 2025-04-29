@@ -80,7 +80,7 @@ class PatientController extends Controller
         $date = \Carbon\Carbon::now()->toDateString();
         
         $urgent = Patient::where('priority', 'P')->whereDate('created_at', $date)->count();
-        $waiting = Patient::where('status', 'waiting')->whereDate('created_at', $date)->orWhereNull('status')->count();
+        $waiting = Patient::where('status', 'waiting')->whereDate('created_at', $date)->count();
         $inprogress = Patient::where('status', 'in-progress')->whereDate('created_at', $date)->count();
         $completed = Patient::where('status', 'completed')->whereDate('created_at', $date)->count();
 
