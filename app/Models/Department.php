@@ -16,14 +16,18 @@ class Department extends Model
     'status',
   ];
 
-  protected $appends = ['occupancy', 'waitingPatients'];
+  protected $appends = ['occupancy', 'waitingPatients', 'staffCount'];
 
   public function specializations () {
     return $this->hasMany(DepartmentSpecialization::class);
   }
 
-  public function staffs() { // return count
-    return $this->hasMany(User::class, 'department_id', 'id')->where('role_id', 3)->count();
+  public function staffs() {
+    return $this->hasMany(User::class, 'department_id', 'id')->where('role_id', 3);
+  }
+
+  public function getStaffCountAttribute() {
+    return $this->staffs()->count();
   }
 
   public function patient() {
