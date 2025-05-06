@@ -13,7 +13,7 @@ class DepartmentController extends Controller
      * Get all departments
      */
     public function get(Request $request) {
-        $with = ['specializations'];
+        $with = ['specializations','staffs'];
         if($request->has('has_patient')){
             $with[] = "patient";
         }
@@ -63,7 +63,7 @@ class DepartmentController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => $id ? 'Department updated successfully' : 'Department created successfully',
-                'data' => $department->load('specializations')
+                'data' => $department->load('specializations','staffs')
             ]);
         } catch (\Exception $e) {
             DB::rollBack();

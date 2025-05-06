@@ -22,7 +22,7 @@ class Department extends Model
     return $this->hasMany(DepartmentSpecialization::class);
   }
 
-  public function getStaffsAttribute() { // return count
+  public function staffs() { // return count
     return $this->hasMany(User::class, 'department_id', 'id')->where('role_id', 3)->count();
   }
 
