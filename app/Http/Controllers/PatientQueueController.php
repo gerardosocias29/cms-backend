@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\{PatientQueueUpdated, PatientQueueDisplay};
+use App\Events\{PatientQueueUpdated, PatientQueueDisplay, CallOutQueue};
 use App\Models\Patient; // Make sure Patient model exists and is correctly namespaced
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request; // Import Request
@@ -32,6 +32,27 @@ class PatientQueueController extends Controller
         return response()->json($patients);
     }
 
+    // Call out session
+    public function callOutQueue(Patient $patient) {
+        try {
+            $user = auth()->user();
+            if ($user->department_id !== $patient->next_department_id) {
+                return response()->json(['message' => 'You do not have permission to call out this patient.'], 403);
+            }
+
+            event(new CallOutQueue([
+                'priority' => $patient->priority,
+                'number' => $patient->priority_number,
+                'department_name' => $patient->next_department->name
+            ]));
+
+            return response()->json(['message' => 'Queued called successfully.', 'patient' => $patient]);
+        } catch (\Exception $e) {
+            Log::error("Error calling out patient ID: {$patient->id}: " . $e->getMessage());
+            return response()->json(['message' => 'Failed to call out.'], 500);
+        }
+    }
+
     /**
      * Start a session for a patient.
      *
@@ -41,10 +62,11 @@ class PatientQueueController extends Controller
     public function startSession(Patient $patient): JsonResponse
     {
         try {
-            // Check if patient is already being served or completed
-            // if ($patient->status !== 'waiting' && !is_null($patient->status)) {
-            //      return response()->json(['message' => 'Patient is not waiting.'], 409); // Conflict
-            // }
+            // check if has permission to start session
+            $user = auth()->user();
+            if ($user->department_id !== $patient->next_department_id) {
+                return response()->json(['message' => 'You do not have permission to start this session.'], 403);
+            }
 
             $patient->status = 'in-progress';
             $patient->session_started = \Carbon\Carbon::now()->toDateTimeString();
@@ -54,6 +76,12 @@ class PatientQueueController extends Controller
             // TODO: Broadcast event for real-time updates (e.g., using Laravel Echo)
             // event(new PatientStatusUpdated($patient));
             event(new PatientQueueDisplay("Reload PatientQueueDisplay"));
+
+            event(new CallOutQueue([
+                'priority' => $patient->priority,
+                'number' => $patient->priority_number,
+                'department_name' => $patient->next_department->name
+            ]));
 
             return response()->json(['message' => 'Session started successfully.', 'patient' => $patient]);
         } catch (\Exception $e) {

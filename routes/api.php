@@ -46,6 +46,7 @@ Route::middleware('auth:api')->group(function () {
 
 
   // Queue Management Routes
+  Route::post('/queue/call-out/{patient}', [PatientQueueController::class, 'callOutQueue']);
   Route::post('/queue/start/{patient}', [PatientQueueController::class, 'startSession']);
   Route::post('/queue/end/{patient}', [PatientQueueController::class, 'endSession']);
   Route::post('/queue/next/{patient}', [PatientQueueController::class, 'nextStep']);
