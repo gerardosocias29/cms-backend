@@ -20,8 +20,8 @@ class RoleSeeder extends Seeder
 
         $roleModules = [
             1 => ['dashboard', 'patient-triage', 'queue', 'departments', 'users', 'settings'], // Superadmin
-            2 => ['dashboard', 'patient-triage', 'queue', 'departments', 'users'], // Admin
-            3 => ['dashboard', 'patient-triage', 'queue'], // Staff
+            2 => ['dashboard', 'patient-triage', 'departments', 'users'], // Admin
+            3 => ['dashboard', 'queue'], // Staff
         ];
 
         foreach ($roles as $id => $roleData) {
