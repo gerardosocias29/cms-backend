@@ -12,7 +12,7 @@ class PatientController extends Controller
     public function get(Request $request){
         $filter = json_decode($request->filter);
         $date = \Carbon\Carbon::now()->toDateString();
-        $patientsQuery = Patient::with(['assigned_to.department'])->whereDate('created_at', $date)->orderBy('created_at', 'desc');
+        $patientsQuery = Patient::with(['next_department'])->whereDate('created_at', $date)->orderBy('created_at', 'desc');
         $patientsQuery = $this->applyFilters($patientsQuery, $filter, Patient::class);
         $patients = $patientsQuery->paginate(($filter->rows), ['*'], 'page', ($filter->page + 1));
         
@@ -50,8 +50,7 @@ class PatientController extends Controller
             }
 
             // Assign starting department based on assigned user's department specialization
-            if (!$id && isset($validatedData['starting_department_id'])) {
-              
+            if (isset($validatedData['starting_department_id'])) {
                 $patient->starting_department_id = $validatedData['starting_department_id'];
                 $patient->next_department_id = $validatedData['starting_department_id'];
                 $patient->next_department_started = \Carbon\Carbon::now()->toDateTimeString();
