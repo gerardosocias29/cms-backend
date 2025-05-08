@@ -30,7 +30,7 @@ class PatientController extends Controller
                 'bloodpressure' => 'required|string|max:20',
                 'heartrate' => 'required|integer|min:1',
                 'temperature' => 'required|numeric|min:30|max:45',
-                'assigned_user_id' => 'nullable|integer|exists:users,id',
+                'starting_department_id' => 'nullable|integer|exists:departments,id',
             ]);
 
             $validatedData['birthday'] = \Carbon\Carbon::parse($validatedData['birthday'])->toDateString();
@@ -50,15 +50,13 @@ class PatientController extends Controller
             }
 
             // Assign starting department based on assigned user's department specialization
-            if (!$id && isset($validatedData['assigned_user_id'])) {
-                $assignedUser = \App\Models\User::find($validatedData['assigned_user_id']);
-                if ($assignedUser) {
-                    $patient->starting_department_id = $assignedUser->department_id;
-                    $patient->next_department_id = $patient->starting_department_id;
-                    $patient->next_department_started = \Carbon\Carbon::now()->toDateTimeString();
+            if (!$id && isset($validatedData['starting_department_id'])) {
+              
+                $patient->starting_department_id = $validatedData['starting_department_id'];
+                $patient->next_department_id = $validatedData['starting_department_id'];
+                $patient->next_department_started = \Carbon\Carbon::now()->toDateTimeString();
 
-                    event(new PatientQueueUpdated($assignedUser->department_id));
-                }
+                event(new PatientQueueUpdated($validatedData['starting_department_id']));
             }
 
             $patient->save();
