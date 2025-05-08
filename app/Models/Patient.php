@@ -35,6 +35,10 @@ class Patient extends Model
         return $this->belongsTo(User::class, 'assigned_user_id', 'id');
     }
 
+    public function starting_department() {
+        return $this->belongsTo(Department::class, 'starting_department_id', 'id');
+    }
+
     public function next_department() {
         return $this->belongsTo(Department::class, 'next_department_id', 'id');
     }
