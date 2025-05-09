@@ -25,11 +25,11 @@ class PatientController extends Controller
                 'name' => 'required|string|max:255',
                 'birthday' => 'required|date',
                 'priority' => 'required|string|max:50',
-                'address' => 'required|string',
-                'symptoms' => 'required|string',
-                'bloodpressure' => 'required|string|max:20',
-                'heartrate' => 'required|integer|min:1',
-                'temperature' => 'required|numeric|min:30|max:45',
+                // 'address' => 'required|string',
+                // 'symptoms' => 'required|string',
+                // 'bloodpressure' => 'required|string|max:20',
+                // 'heartrate' => 'required|integer|min:1',
+                // 'temperature' => 'required|numeric|min:30|max:45',
                 'starting_department_id' => 'nullable|integer|exists:departments,id',
             ]);
 

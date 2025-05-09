@@ -15,19 +15,24 @@ class PatientQueueController extends Controller
      *
      * @return JsonResponse
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         // Fetch patients relevant to the queue (e.g., 'waiting' or 'in-progress')
         // Adjust the query based on your actual status values and logic
 
         $user = auth()->user();
-        
+
         $date = \Carbon\Carbon::now()->toDateString();
-        $patients = Patient::whereIn('status', ['waiting', 'in-progress'])
-                            ->whereDate('created_at', $date)
-                            ->where('next_department_id', $user->department_id)
-                            ->orderBy('priority_number') // Example ordering
-                            ->get();
+        $query = Patient::whereIn('status', ['waiting', 'in-progress'])
+                        ->whereDate('created_at', $date)
+                        ->orderBy('priority_number'); // Example ordering
+
+        // Get all departments the user has access to
+        if (!empty($request->department_id)) {
+            $query->where('next_department_id', $request->department_id);
+        }
+
+        $patients = $query->get();
 
         return response()->json($patients);
     }
@@ -36,7 +41,9 @@ class PatientQueueController extends Controller
     public function callOutQueue(Patient $patient) {
         try {
             $user = auth()->user();
-            if ($user->department_id !== $patient->next_department_id) {
+            $departmentIds = $user->getAllDepartmentIds();
+
+            if (!in_array($patient->next_department_id, $departmentIds)) {
                 return response()->json(['message' => 'You do not have permission to call out this patient.'], 403);
             }
 
@@ -64,7 +71,9 @@ class PatientQueueController extends Controller
         try {
             // check if has permission to start session
             $user = auth()->user();
-            if ($user->department_id !== $patient->next_department_id) {
+            $departmentIds = $user->getAllDepartmentIds();
+
+            if (!in_array($patient->next_department_id, $departmentIds)) {
                 return response()->json(['message' => 'You do not have permission to start this session.'], 403);
             }
 
@@ -107,7 +116,7 @@ class PatientQueueController extends Controller
             // Mark as completed or remove, depending on workflow
             $patient->status = 'completed'; // Or perhaps delete/archive
             $patient->session_ended = \Carbon\Carbon::now()->toDateTimeString(); // Or perhaps delete/archive
-            
+
             $current_next_department_id = $patient->next_department_id;
             $current_next_department_started = $patient->next_department_started;
 
@@ -119,7 +128,7 @@ class PatientQueueController extends Controller
                 ];
             }
             $patient->prev_department_ids = $prev_departments;
-            
+
             $patient->next_department_id = null;
             $patient->next_department_started = null;
 
@@ -186,7 +195,7 @@ class PatientQueueController extends Controller
 
             $nextStepId = $request->input('next_step_id', 'Unknown'); // Get next step if provided
             Log::info("Patient ID: {$patient->id} moved to next step (ID: {$nextStepId})");
-            
+
             // Broadcast event to the specific department
             event(new PatientQueueUpdated($nextStepId));
             event(new PatientQueueDisplay("Reload PatientQueueDisplay"));

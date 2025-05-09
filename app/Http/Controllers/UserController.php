@@ -19,10 +19,12 @@ class UserController extends Controller
 
         $usersQuery = $this->applyFilters($usersQuery, $filter, User::class);
         $users = $usersQuery->paginate(($filter->rows), ['*'], 'page', ($filter->page + 1));
-        
+
+        // The accessors will automatically be included in the response
+
         return response($users);
     }
-    
+
     public function saveUser(Request $request, $id = null)
     {
         try {
@@ -32,26 +34,29 @@ class UserController extends Controller
                 'password' => $id ? 'nullable|string|min:6|confirmed' : 'required|string|min:6|confirmed',
                 'role_id' => 'required|integer|exists:roles,id|not_in:1',
                 'department_id' => 'nullable|integer',
+                'department_ids' => 'nullable|array',
+                'department_ids.*' => 'integer|exists:departments,id',
                 'specialization_id' => 'nullable|integer',
             ]);
-    
+
             $user = $id ? User::find($id) : new User();
-    
+
             if ($id && !$user) {
                 return response()->json(['status' => false, 'message' => 'User not found'], 404);
             }
-    
+
             $user->name = $request->name;
             $user->email = $request->email;
             $user->role_id = $request->role_id;
             $user->department_id = $request->department_id;
+            $user->department_ids = $request->department_ids;
             $user->department_specialization_id = $request->specialization_id;
-    
+
             // Update password only if provided
             if ($request->filled('password')) {
                 $user->password = Hash::make($request->password);
             }
-    
+
             $user->save();
 
             return response()->json([
@@ -85,11 +90,13 @@ class UserController extends Controller
     }
 
     public function getUserById(Request $request, $id) {
-        
+
         $user = User::with(['department_specialization.department', 'department', 'patients'])
             ->where('id', $id)
             ->first();
-       
+
+        // The accessors will automatically be included in the response
+
         return response($user);
-    }   
+    }
 }

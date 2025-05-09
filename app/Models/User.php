@@ -23,6 +23,10 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
+        'department_id',
+        'department_ids',
+        'department_specialization_id',
+        'role_id',
     ];
 
     /**
@@ -36,6 +40,16 @@ class User extends Authenticatable implements JWTSubject
     ];
 
     /**
+     * The attributes that should be appended to arrays.
+     *
+     * @var array
+     */
+    protected $appends = [
+        'additional_departments',
+        'all_departments',
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -45,6 +59,7 @@ class User extends Authenticatable implements JWTSubject
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'department_ids' => 'array',
         ];
     }
 
@@ -59,11 +74,60 @@ class User extends Authenticatable implements JWTSubject
         return $this->belongsTo(Department::class);
     }
 
+    /**
+     * Get the additional departments associated with the user.
+     * This is an accessor method that returns a collection of departments.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getAdditionalDepartmentsAttribute() {
+        if (empty($this->department_ids)) {
+            return collect([]);
+        }
+
+        return Department::whereIn('id', $this->department_ids)->get();
+    }
+
+    /**
+     * Get all departments (primary + additional) as a collection
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getAllDepartmentsAttribute() {
+        $departmentIds = $this->getAllDepartmentIds();
+
+        if (empty($departmentIds)) {
+            return collect([]);
+        }
+
+        return Department::whereIn('id', $departmentIds)->get();
+    }
+
     public function role() {
         return $this->belongsTo(Role::class);
     }
 
     public function patients() {
         return $this->hasMany(Patient::class, 'assigned_user_id', 'id');
+    }
+
+    /**
+     * Get all departments (primary + additional) that the user belongs to
+     *
+     * @return array
+     */
+    public function getAllDepartmentIds(): array
+    {
+        $departmentIds = [];
+
+        if ($this->department_id) {
+            $departmentIds[] = $this->department_id;
+        }
+
+        if (!empty($this->department_ids)) {
+            $departmentIds = array_merge($departmentIds, $this->department_ids);
+        }
+
+        return array_unique($departmentIds);
     }
 }
