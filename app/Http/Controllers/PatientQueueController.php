@@ -198,6 +198,7 @@ class PatientQueueController extends Controller
 
             // Broadcast event to the specific department
             event(new PatientQueueUpdated($nextStepId));
+            event(new PatientQueueUpdated($current_next_department_id));
             event(new PatientQueueDisplay("Reload PatientQueueDisplay"));
 
             return response()->json(['message' => 'Patient moved to next step successfully.']);
