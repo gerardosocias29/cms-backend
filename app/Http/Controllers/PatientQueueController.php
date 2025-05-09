@@ -85,7 +85,7 @@ class PatientQueueController extends Controller
             // TODO: Broadcast event for real-time updates (e.g., using Laravel Echo)
             // event(new PatientStatusUpdated($patient));
             event(new PatientQueueDisplay("Reload PatientQueueDisplay"));
-
+            event(new PatientQueueUpdated($patient->next_department_id));
             event(new CallOutQueue([
                 'priority' => $patient->priority,
                 'number' => $patient->priority_number,
@@ -138,6 +138,7 @@ class PatientQueueController extends Controller
             // TODO: Broadcast event
             // event(new PatientStatusUpdated($patient));
             event(new PatientQueueDisplay("Reload PatientQueueDisplay"));
+            event(new PatientQueueUpdated($current_next_department_id));
 
             return response()->json(['message' => 'Session ended successfully.']);
         } catch (\Exception $e) {
