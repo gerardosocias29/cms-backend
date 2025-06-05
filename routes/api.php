@@ -38,6 +38,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/', [PatientController::class, 'get']);
     Route::post('/', [PatientController::class, 'savePatient']);
     Route::get('/queue', [PatientQueueController::class, 'index']);
+    Route::get('/queue/history', [PatientQueueController::class, 'history']);
     Route::post('/{id}', [PatientController::class, 'savePatient']);
     Route::get('/card-totals', [PatientController::class, 'cardTotals']);
   });

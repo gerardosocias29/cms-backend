@@ -90,10 +90,16 @@ class User extends Authenticatable implements JWTSubject
 
     /**
      * Get all departments (primary + additional) as a collection
+     * For superadmin users (role_id = 1), returns ALL departments
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getAllDepartmentsAttribute() {
+        // If user is superadmin (role_id = 1), return all departments
+        if ($this->role_id == 1) {
+            return Department::all();
+        }
+
         $departmentIds = $this->getAllDepartmentIds();
 
         if (empty($departmentIds)) {
@@ -113,11 +119,17 @@ class User extends Authenticatable implements JWTSubject
 
     /**
      * Get all departments (primary + additional) that the user belongs to
+     * For superadmin users (role_id = 1), returns ALL department IDs
      *
      * @return array
      */
     public function getAllDepartmentIds(): array
     {
+        // If user is superadmin (role_id = 1), return all department IDs
+        if ($this->role_id == 1) {
+            return Department::pluck('id')->toArray();
+        }
+
         $departmentIds = [];
 
         if ($this->department_id) {

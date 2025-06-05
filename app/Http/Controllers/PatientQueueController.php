@@ -37,6 +37,99 @@ class PatientQueueController extends Controller
         return response()->json($patients);
     }
 
+    /**
+     * Get historical queue data for a specific date and/or department.
+     *
+     * Access Control:
+     * - Superadmin users (role_id = 1) can access all departments without restriction
+     * - Regular users can only access departments they have permission to view
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function history(Request $request): JsonResponse
+    {
+        try {
+            $user = auth()->user();
+            $departmentIds = $user->getAllDepartmentIds();
+
+            // Get date parameter (default to today if not provided)
+            $date = $request->get('date', \Carbon\Carbon::now()->toDateString());
+
+            // Validate date format
+            try {
+                $parsedDate = \Carbon\Carbon::createFromFormat('Y-m-d', $date);
+            } catch (\Exception $e) {
+                return response()->json(['message' => 'Invalid date format. Use YYYY-MM-DD.'], 400);
+            }
+
+            // Build query for historical patient data
+            $query = Patient::with(['starting_department', 'next_department'])
+                           ->whereDate('created_at', $date)
+                           ->orderBy('priority_number');
+
+            // Check if user is superadmin (role_id = 1)
+            $isSuperAdmin = $user->role_id == 1;
+
+            // Filter by department if specified
+            if ($request->has('department_id')) {
+                $departmentId = $request->get('department_id');
+
+                // Check if user has access to this department (skip check for superadmin)
+                if (!$isSuperAdmin && !in_array($departmentId, $departmentIds)) {
+                    return response()->json(['message' => 'You do not have access to this department.'], 403);
+                }
+
+                $query->where(function($q) use ($departmentId) {
+                    $q->where('starting_department_id', $departmentId)
+                      ->orWhere('next_department_id', $departmentId)
+                      ->orWhereJsonContains('prev_department_ids', $departmentId);
+                });
+            } else {
+                // If no specific department requested
+                if (!$isSuperAdmin) {
+                    // For non-superadmin users, filter by user's accessible departments
+                    $query->where(function($q) use ($departmentIds) {
+                        $q->whereIn('starting_department_id', $departmentIds)
+                          ->orWhereIn('next_department_id', $departmentIds);
+
+                        // Also check previous departments
+                        foreach ($departmentIds as $deptId) {
+                            $q->orWhereJsonContains('prev_department_ids', $deptId);
+                        }
+                    });
+                }
+                // For superadmin users, no department filtering is applied (show all)
+            }
+
+            $patients = $query->get();
+
+            // Transform the data to match frontend expectations
+            $transformedPatients = $patients->map(function ($patient) {
+                return [
+                    'id' => $patient->id,
+                    'name' => $patient->name,
+                    'priority' => $patient->priority,
+                    'priority_number' => $patient->priority_number,
+                    'status' => $patient->status,
+                    'created_at' => $patient->created_at,
+                    'session_started' => $patient->session_started,
+                    'session_ended' => $patient->session_ended,
+                    'completed_at' => $patient->session_ended, // Alias for frontend compatibility
+                    'starting_department' => $patient->starting_department,
+                    'next_department' => $patient->next_department,
+                    'prev_department_ids' => $patient->prev_department_ids,
+                ];
+            });
+
+            return response()->json($transformedPatients);
+
+        } catch (\Exception $e) {
+            Log::error("Error fetching queue history: " . $e->getMessage());
+            return response()->json(['message' => 'Failed to fetch queue history.'], 500);
+        }
+    }
+
     // Call out session
     public function callOutQueue(Patient $patient) {
         try {
