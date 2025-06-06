@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\{AuthController, DepartmentController, UserController, QueueController, PatientController, PatientQueueController};
+use App\Http\Controllers\{AuthController, DepartmentController, UserController, QueueController, PatientController, PatientQueueController, DashboardController};
 use App\Http\Controllers\Api\PrinterSettingController; // Import the new controller
 
 Route::post('login', [AuthController::class, 'login']);
@@ -18,6 +18,7 @@ Route::middleware('auth:api')->group(function () {
 
   Route::prefix('departments')->group(function () {
     Route::get('/', [DepartmentController::class, 'get']);
+    Route::get('/stats', [DashboardController::class, 'getDepartmentStats']);
     Route::post('/', [DepartmentController::class, 'store']);
     Route::post('/{id}', [DepartmentController::class, 'store']);
     Route::delete('/{id}', [DepartmentController::class, 'destroy']);
@@ -41,6 +42,12 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/queue/history', [PatientQueueController::class, 'history']);
     Route::post('/{id}', [PatientController::class, 'savePatient']);
     Route::get('/card-totals', [PatientController::class, 'cardTotals']);
+  });
+
+  // Dashboard Routes
+  Route::prefix('dashboard')->group(function () {
+    Route::get('/stats', [DashboardController::class, 'getStats']);
+    Route::get('/recent-activity', [DashboardController::class, 'getRecentActivity']);
   });
 
 
