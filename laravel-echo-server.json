@@ -1,37 +1,22 @@
 {
-	"authHost": "api.dumy.one",
-	"authEndpoint": "/broadcasting/auth",
-	"clients": [
-		{
-			"appId": "81d33ef86dbcb3d4",
-			"key": "b3f328bddcf9dcf0702d9fcf5414bbda"
-		}
-	],
-	"database": "redis",
-	"databaseConfig": {
-		"redis": {
-			"host": "127.0.0.1",
-			"port": "6379"
-		}
-	},
-	"devMode": false,
-	"host": "0.0.0.0",
-	"port": "6001",
-	"protocol": "https",
-	"socketio": {},
-	"secureOptions": 67108864,
-	"sslCertPath": "/home/ubuntu/ssl-certs/fullchain.pem",
-	"sslKeyPath": "/home/ubuntu/ssl-certs/privkey.pem",
-	"sslCertChainPath": "/home/ubuntu/ssl-certs/chain.pem",
-	"sslPassphrase": "",
-	"subscribers": {
-		"http": true,
-		"redis": true
-	},
-	"apiOriginAllow": {
-		"allowCors": true,
-		"allowOrigin": "*",
-		"allowMethods": "GET, POST",
-		"allowHeaders": "Origin, Content-Type, X-Auth-Token, X-Requested-With, Accept, Authorization, X-CSRF-TOKEN, X-Socket-Id"
-	}
+  "authHost": "http://127.0.0.1",
+  "authEndpoint": "/broadcasting/auth",
+  "clients": [],
+  "database": "redis",
+  "databaseConfig": {
+    "redis": {
+      "host": "127.0.0.1",
+      "port": "6379"
+    }
+  },
+  "devMode": true,
+  "host": "0.0.0.0",
+  "port": "6001",
+  "protocol": "http",
+  "socketio": {
+    "cors": {
+      "origin": "*",
+      "methods": ["GET", "POST"]
+    }
+  }
 }

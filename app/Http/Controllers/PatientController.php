@@ -23,7 +23,7 @@ class PatientController extends Controller
         try {
             $validatedData = $request->validate([
                 'name' => 'required|string|max:255',
-                'birthday' => 'required|date',
+                'birthday' => 'nullable|date',
                 'priority' => 'required|string|max:50',
                 // 'address' => 'required|string',
                 // 'symptoms' => 'required|string',
