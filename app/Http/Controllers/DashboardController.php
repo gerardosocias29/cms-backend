@@ -49,7 +49,7 @@ class DashboardController extends Controller
 
             return response()->json([
                 'todayStats' => $todayStats,
-                'alerts' => $alerts
+                'alerts' => []
             ]);
 
         } catch (\Exception $e) {
