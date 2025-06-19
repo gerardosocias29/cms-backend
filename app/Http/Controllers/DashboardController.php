@@ -184,7 +184,6 @@ class DashboardController extends Controller
                     'priority' => 'high'
                 ];
             }
-
         } catch (\Exception $e) {
             Log::error("Error generating system alerts: " . $e->getMessage());
             // Don't fail the entire request if alerts fail

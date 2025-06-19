@@ -65,6 +65,8 @@ Route::middleware('auth:api')->group(function () {
   Route::prefix('settings')->group(function () {
       Route::get('/default-printer', [PrinterSettingController::class, 'getDefaultPrinter']);
       Route::post('/default-printer', [PrinterSettingController::class, 'setDefaultPrinter']);
+      Route::get('/video-url', [\App\Http\Controllers\VideoController::class, 'index']);
+      Route::post('/video-url', [\App\Http\Controllers\VideoController::class, 'store']);
   });
 });
 
