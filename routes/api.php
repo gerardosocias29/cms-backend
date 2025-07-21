@@ -4,6 +4,7 @@ use App\Http\Controllers\{AuthController, DepartmentController, UserController, 
 use App\Http\Controllers\Api\PrinterSettingController; // Import the new controller
 
 Route::post('login', [AuthController::class, 'login']);
+Route::get('/phpinfo', fn () => phpinfo());
 
 Route::middleware('auth:api')->group(function () {
   Route::post('logout', [AuthController::class, 'logout']);
@@ -66,7 +67,7 @@ Route::middleware('auth:api')->group(function () {
       Route::get('/default-printer', [PrinterSettingController::class, 'getDefaultPrinter']);
       Route::post('/default-printer', [PrinterSettingController::class, 'setDefaultPrinter']);
       Route::get('/video-url', [\App\Http\Controllers\VideoController::class, 'index']);
-      Route::post('/video-url', [\App\Http\Controllers\VideoController::class, 'store']);
+      Route::post('/video-file', [\App\Http\Controllers\VideoController::class, 'store']);
   });
 });
 
