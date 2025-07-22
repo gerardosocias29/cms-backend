@@ -9,15 +9,15 @@ class VideoController extends Controller
 {
     public function index()
     {
-        $fileVideo = \App\Models\Video::where('type', 'file')->orderBy('created_at', 'DESC')->first();
-        $urlVideo = \App\Models\Video::where('type', 'url')->orderBy('created_at', 'DESC')->first();
+        $fileVideo = \App\Models\Video::where('position', 'top')->orderBy('created_at', 'DESC')->first();
+        $urlVideo = \App\Models\Video::where('position', 'bottom')->orderBy('created_at', 'DESC')->first();
 
         $response = [];
         if ($fileVideo) {
-            $response[] = ['url' => $fileVideo->url, 'type' => $fileVideo->type];
+            $response[] = ['url' => $fileVideo->url, 'type' => $fileVideo->type, 'position' => $fileVideo->position, 'show' => $fileVideo->show];
         }
         if ($urlVideo) {
-            $response[] = ['url' => $urlVideo->url, 'type' => $urlVideo->type];
+            $response[] = ['url' => $urlVideo->url, 'type' => $urlVideo->type, 'position' => $urlVideo->position, 'show' => $urlVideo->show];
         }
 
         return response()->json($response);
@@ -25,43 +25,48 @@ class VideoController extends Controller
 
     public function store(Request $request)
     {
+        if ($request->video === 'null') {
+            $request->merge(['video' => null]);
+        }
+
         $request->validate([
-            'video' => 'sometimes|file|mimetypes:video/mp4,video/mpeg,video/quicktime,video/x-msvideo|max:204800', // Max 200MB
+            'video' => [
+                'nullable',
+                'file',
+                'mimetypes:video/mp4,video/mpeg,video/quicktime,video/x-msvideo',
+                'max:204800'
+            ],
             'url' => 'sometimes|url',
+            'position' => 'required|string|in:top,bottom',
+            'show' => 'sometimes|string|in:true,false',
         ]);
 
-        if (!$request->hasFile('video') && !$request->has('url')) {
+        if ($request->video != null && !$request->hasFile('video') && !$request->filled('url')) {
             return response()->json(['message' => 'Either a video file or a URL is required.'], 400);
         }
 
-        $video = new \App\Models\Video();
-        $typeToSave = '';
+        $video = \App\Models\Video::firstOrNew(['position' => $request->position]);
 
         if ($request->hasFile('video')) {
-            $typeToSave = 'file';
+            // Delete old file if it exists and was a file type
+            if ($video->type === 'file' && $video->url && Storage::disk('public')->exists(str_replace('/storage/', '', $video->url))) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $video->url));
+            }
+
             $path = $request->file('video')->store('videos', 'public');
             $video->url = str_replace('/storage/', '/uploads/', Storage::url($path));
-            $video->type = $typeToSave;
-        } elseif ($request->has('url')) {
-            $typeToSave = 'url';
+            $video->type = 'file';
+        } elseif ($request->filled('url')) {
             $video->url = $request->url;
-            $video->type = $typeToSave;
-        }
-        
-        // Delete old video of the same type if exists
-        $oldVideo = \App\Models\Video::where('type', $typeToSave)->orderBy('created_at', 'DESC')->first();
-        if ($oldVideo) {
-            // change storage to uploads
-            
-            if ($oldVideo->type === 'file' && Storage::disk('public')->exists(str_replace('/storage/', '', $oldVideo->url))) {
-                Storage::disk('public')->delete(str_replace('/storage/', '', $oldVideo->url));
-            }
-            $oldVideo->delete(); // Delete the old record from the database
+            $video->type = 'url';
         }
 
+        $video->position = $request->position;
+        $video->show = $request->boolean('show', true); // default to true if not set
         $video->save();
 
         return response()->json($video, 201);
     }
+
 }
 
