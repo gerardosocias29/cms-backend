@@ -54,18 +54,24 @@ class PatientQueueController extends Controller
             $departmentIds = $user->getAllDepartmentIds();
 
             // Get date parameter (default to today if not provided)
-            $date = $request->get('date', \Carbon\Carbon::now()->toDateString());
+            $date = $request->get('date', \Carbon\Carbon::now()->toDateTimeString());
+            $date_end = $request->get('date_end', \Carbon\Carbon::now()->toDateTimeString());
 
             // Validate date format
             try {
-                $parsedDate = \Carbon\Carbon::createFromFormat('Y-m-d', $date);
+                $parsedDate = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $date);
+                $parsedDateEnd = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $date_end);
+                if ($parsedDateEnd->lessThan($parsedDate)) {
+                    return response()->json(['message' => 'date_end must be greater than or equal to date.'], 400);
+                }
             } catch (\Exception $e) {
-                return response()->json(['message' => 'Invalid date format. Use YYYY-MM-DD.'], 400);
+                return response()->json(['message' => 'Invalid date format. Use YYYY-MM-DD HH:mm:ss.'], 400);
             }
 
             // Build query for historical patient data
             $query = Patient::with(['starting_department', 'next_department'])
-                           ->whereDate('created_at', $date)
+                           ->whereBetween('created_at', [$parsedDate->toDateTimeString(), $parsedDateEnd->toDateTimeString()])
+                           ->whereIn('status', ['waiting', 'in-progress', 'completed'])
                            ->orderBy('priority_number');
 
             // Check if user is superadmin (role_id = 1)
